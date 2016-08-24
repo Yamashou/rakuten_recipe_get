@@ -3,8 +3,8 @@ package main
 import (
 	"encoding/json"
 	"io/ioutil"
-	"strings"
 	"os"
+	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 )
@@ -21,9 +21,11 @@ type material struct {
 
 //メインのjson
 type mesi struct {
-	Name        string    `json:"name"`
-	Image       string    `json:"image"`
-	MemberNum   string    `json:"membernum"`
+	Name      string `json:"name"`
+	Image     string `json:"image"`
+	MemberNum string `json:"membernum"`
+	Time      string `json:"time"`
+	//Fee         strings   `json:"fee"`
 	Explanation string    `json:"explanation"`
 	Material    material  `json:"material"`
 	Process     []process `json:"process"`
@@ -44,6 +46,16 @@ func people(url string) string {
 	var i string
 	doc, _ := goquery.NewDocument(url)
 	doc.Find("div > div > div > div > div > h3 > span > span").Each(func(_ int, s *goquery.Selection) {
+		i = s.Text()
+	})
+	return i
+}
+
+//時間のをstringで返す
+func time(url string) string {
+	var i string
+	doc, _ := goquery.NewDocument(url)
+	doc.Find("time#indication_time_itemprop").Each(func(_ int, s *goquery.Selection) {
 		i = s.Text()
 	})
 	return i
@@ -110,70 +122,71 @@ func exp(url string) string {
 	})
 	return i
 }
+
 //どの工程が写真を持つかを返す
 func haveImages(url string) []bool {
 	var test []bool
 	doc, _ := goquery.NewDocument(url)
 
-	f:= doc.Find("li#step_box_li.stepBox")
-	f.Each(func(_ int, s *goquery.Selection){
-		t,_:=s.Html()
-		if strings.Index(t, "img") != -1{
-			test = append(test,true)
-			}else{
-				test = append(test,false)
-			}
-		})
-		return test
-	}
-	//作り方内の写真を得る
-	func getImages(url string) []string {
-		var quantity []string
-		doc, _ := goquery.NewDocument(url)
-		doc.Find("img#step_image.processImage").Each(func(_ int, s *goquery.Selection) {
-			t,_ := s.Attr("src")
-			// fmt.Println(t)
-			quantity = append(quantity, t)
-		})
-		return quantity
-	}
+	f := doc.Find("li#step_box_li.stepBox")
+	f.Each(func(_ int, s *goquery.Selection) {
+		t, _ := s.Html()
+		if strings.Index(t, "img") != -1 {
+			test = append(test, true)
+		} else {
+			test = append(test, false)
+		}
+	})
+	return test
+}
 
-	func main() {
-		var recipe mesi
-		var mats material
-		var proc []process
-		url := "http://recipe.rakuten.co.jp/recipe/1150010609/"
+//作り方内の写真を得る
+func getImages(url string) []string {
+	var quantity []string
+	doc, _ := goquery.NewDocument(url)
+	doc.Find("img#step_image.processImage").Each(func(_ int, s *goquery.Selection) {
+		t, _ := s.Attr("src")
+		// fmt.Println(t)
+		quantity = append(quantity, t)
+	})
+	return quantity
+}
 
-		recipe.Name = title(url)
-		recipe.Image = image(url)
-		recipe.MemberNum = people(url)
-		recipe.Explanation = exp(url)
+func main() {
+	var recipe mesi
+	var mats material
+	var proc []process
+	url := "http://recipe.rakuten.co.jp/recipe/1150010609/"
 
-		mats.Quantity = materialQuantity(url)
-		mats.Name = mat(url)
-		recipe.Material.Name = mats.Name
-		recipe.Material.Quantity = mats.Quantity
-		haveImage := haveImages(url)
-		prImages := getImages(url)
-		a := 0
-		for i, operation := range procedure(url) {
-			if haveImage[i] == true{
+	recipe.Name = title(url)
+	recipe.Image = image(url)
+	recipe.MemberNum = people(url)
+	recipe.Explanation = exp(url)
+	recipe.Time = time(url)
+	mats.Quantity = materialQuantity(url)
+	mats.Name = mat(url)
+	recipe.Material.Name = mats.Name
+	recipe.Material.Quantity = mats.Quantity
+	haveImage := haveImages(url)
+	prImages := getImages(url)
+	a := 0
+	for i, operation := range procedure(url) {
+		if haveImage[i] == true {
 			proc = append(proc, process{
-				Image: prImages[a],
+				Image:     prImages[a],
 				Operation: operation,
 			})
 			a++
-			}else{
-				proc = append(proc, process{
-					Image: "",
-					Operation: operation,
-				})
-			}
+		} else {
+			proc = append(proc, process{
+				Image:     "",
+				Operation: operation,
+			})
 		}
+	}
 
-
-			recipe.Process = make([]process, len(proc))
-			copy(recipe.Process, proc)
-			bytes, _ := json.Marshal(recipe)
-			ioutil.WriteFile("./test.json", bytes, os.ModePerm)
-		}
+	recipe.Process = make([]process, len(proc))
+	copy(recipe.Process, proc)
+	bytes, _ := json.Marshal(recipe)
+	ioutil.WriteFile("./test.json", bytes, os.ModePerm)
+}
