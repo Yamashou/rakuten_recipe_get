@@ -21,11 +21,11 @@ type material struct {
 
 //メインのjson
 type mesi struct {
-	Name      string `json:"name"`
-	Image     string `json:"image"`
-	MemberNum string `json:"membernum"`
-	Time      string `json:"time"`
-	//Fee         strings   `json:"fee"`
+	Name        string    `json:"name"`
+	Image       string    `json:"image"`
+	MemberNum   string    `json:"membernum"`
+	Time        string    `json:"time"`
+	Fee         string    `json:"fee"`
 	Explanation string    `json:"explanation"`
 	Material    material  `json:"material"`
 	Process     []process `json:"process"`
@@ -56,6 +56,14 @@ func time(url string) string {
 	var i string
 	doc, _ := goquery.NewDocument(url)
 	doc.Find("time#indication_time_itemprop").Each(func(_ int, s *goquery.Selection) {
+		i = s.Text()
+	})
+	return i
+}
+func fee(url string) string {
+	var i string
+	doc, _ := goquery.NewDocument(url)
+	doc.Find("li.icnMoney").Each(func(_ int, s *goquery.Selection) {
 		i = s.Text()
 	})
 	return i
@@ -163,6 +171,7 @@ func main() {
 	recipe.MemberNum = people(url)
 	recipe.Explanation = exp(url)
 	recipe.Time = time(url)
+	recipe.Fee = fee(url)
 	mats.Quantity = materialQuantity(url)
 	mats.Name = mat(url)
 	recipe.Material.Name = mats.Name
