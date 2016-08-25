@@ -179,23 +179,23 @@ func wait2(mats material, c chan string, url string) {
 	// return mats
 }
 func makejson(num string) recipe {
-	c := make(chan string)
+	// c := make(chan string)
 	var recipes recipe
 	var mats material
 	var proc []process
 	url := "http://recipe.rakuten.co.jp/recipe/"
 	url = url + num
-	go wait1(recipes, c, url)
-	go wait2(mats, c, url)
-	// recipes.Recipe.Name = title(url)
-	// recipes.Recipe.Image = image(url)
-	// recipes.Recipe.MemberNum = people(url)
-	// recipes.Recipe.Explanation = exp(url)
-	// recipes.Recipe.Time = time(url)
-	// recipes.Recipe.Fee = fee(url)
+	// go wait1(recipes, c, url)
+	// go wait2(mats, c, url)
+	recipes.Recipe.Name = title(url)
+	recipes.Recipe.Image = image(url)
+	recipes.Recipe.MemberNum = people(url)
+	recipes.Recipe.Explanation = exp(url)
+	recipes.Recipe.Time = time(url)
+	recipes.Recipe.Fee = fee(url)
 
-	// mats.Quantity = materialQuantity(url)
-	// mats.Name = mat(url)
+	mats.Quantity = materialQuantity(url)
+	mats.Name = mat(url)
 
 	recipes.Recipe.Material.Name = mats.Name
 	recipes.Recipe.Material.Quantity = mats.Quantity

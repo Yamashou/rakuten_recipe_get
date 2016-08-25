@@ -10,7 +10,8 @@ func time(url string) []string {
 	var i []string
 	doc, _ := goquery.NewDocument(url)
 	doc.Find("img.mb15 ").Each(func(_ int, s *goquery.Selection) {
-		f, _ := s.Attr("src")
+		// f, _ := s.Attr("src")
+		f, _ := s.Attr("alt")
 		i = append(i, f)
 	})
 	return i
